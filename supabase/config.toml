@@ -1,0 +1,5 @@
+project_id = "sharable-music-urls"
+
+[functions.convert]
+verify_jwt = false
+entrypoint = "./functions/convert/index.tsx"

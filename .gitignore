@@ -1,0 +1,20 @@
+# Secrets — never commit real Spotify credentials
+.env
+supabase/functions/.env
+*.env.local
+
+# Supabase local
+supabase/.branches
+supabase/.temp
+
+# Deno
+deno.lock
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Logs
+*.log
