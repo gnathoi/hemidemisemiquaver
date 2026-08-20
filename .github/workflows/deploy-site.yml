@@ -1,0 +1,59 @@
+name: Deploy site
+
+# Publishes docs/ to the Vercel project that serves maga2026.app.
+# Vercel's own Git integration is deliberately disconnected — this workflow is
+# the only thing that creates production deployments.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'vercel.json'
+      - '.github/workflows/deploy-site.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://maga2026.app
+    env:
+      VERCEL_ORG_ID: team_5lZfSX66bPw3nb64rfFeDY6O
+      VERCEL_PROJECT_ID: prj_b1lyTbXVFpTtxahVtyvmJMhjVp2g
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@53
+
+      - name: Pull project settings
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy to production
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          for host in https://maga2026.app https://www.maga2026.app; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -L "$host/")
+            echo "$host -> $code"
+            [ "$code" = "200" ] || { echo "::error::$host returned $code"; exit 1; }
+          done
+          # The /api/convert rewrite must reach the Supabase function.
+          curl -sS -L 'https://maga2026.app/api/convert?format=json&url=https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b' \
+            | tee /dev/stderr | grep -q '"ok":true'

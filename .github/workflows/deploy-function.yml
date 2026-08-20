@@ -1,0 +1,42 @@
+name: Deploy edge function
+
+# Deploys supabase/functions/convert to the Supabase project that maga2026.app
+# proxies /api/convert to. JWT verification stays off via supabase/config.toml.
+#
+# Spotify credentials are NOT managed here — they live in Supabase and are set
+# once with: supabase secrets set SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=...
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/deploy-function.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-function
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: uecupxbggzxgkizitsci
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy convert function
+        run: supabase functions deploy convert --project-ref "$SUPABASE_PROJECT_REF" --use-api
+
+      - name: Smoke test
+        run: |
+          set -euo pipefail
+          curl -sS --retry 3 --retry-delay 5 \
+            "https://$SUPABASE_PROJECT_REF.supabase.co/functions/v1/convert?format=json&url=https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b" \
+            | tee /dev/stderr | grep -q '"ok":true'

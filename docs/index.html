@@ -72,7 +72,12 @@
   </div>
 
 <script>
-  var API = "https://uecupxbggzxgkizitsci.supabase.co/functions/v1/convert";
+  // Served from Vercel (maga2026.app), /api/convert is rewritten to the Supabase
+  // function, so the call is same-origin. Anywhere else — file://, GitHub Pages —
+  // fall back to hitting the function directly (it sends Access-Control-Allow-Origin: *).
+  var SUPABASE_FN = "https://uecupxbggzxgkizitsci.supabase.co/functions/v1/convert";
+  var PROXIED = /(^|\.)maga2026\.app$|\.vercel\.app$|^localhost$|^127\.0\.0\.1$/;
+  var API = PROXIED.test(location.hostname) ? "/api/convert" : SUPABASE_FN;
   var form = document.getElementById("f");
   var out = document.getElementById("out");
 

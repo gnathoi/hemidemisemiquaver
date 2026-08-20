@@ -18,3 +18,6 @@ deno.lock
 
 # Logs
 *.log
+
+# Vercel CLI link (project/org IDs live in the workflow instead)
+.vercel
