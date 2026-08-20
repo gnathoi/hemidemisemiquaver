@@ -412,9 +412,14 @@ function Page({ url, result, error }: { url: string; result: Result | null; erro
 // ---------------------------------------------------------------------------
 // Handler
 // ---------------------------------------------------------------------------
+const CORS = { "Access-Control-Allow-Origin": "*" };
+
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const input = url.searchParams.get("url") ?? "";
+  const wantsJson =
+    url.searchParams.get("format") === "json" ||
+    (req.headers.get("accept") ?? "").includes("application/json");
 
   let result: Result | null = null;
   let error: string | null = null;
@@ -425,6 +430,15 @@ Deno.serve(async (req) => {
     } catch (e) {
       error = e instanceof Error ? e.message : "Something went wrong.";
     }
+  }
+
+  // JSON API mode — used by the static frontend (GitHub Pages) since the
+  // shared *.supabase.co domain won't serve browser-rendered HTML.
+  if (wantsJson) {
+    const body = result ? { ok: true, ...result } : { ok: false, error: error ?? "No url provided." };
+    return new Response(JSON.stringify(body), {
+      headers: { "Content-Type": "application/json", ...CORS },
+    });
   }
 
   const html = "<!DOCTYPE html>" + renderToString(<Page url={input} result={result} error={error} />);
