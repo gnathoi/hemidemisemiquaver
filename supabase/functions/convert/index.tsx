@@ -253,66 +253,103 @@ async function resolve(url: string): Promise<Result> {
 // ---------------------------------------------------------------------------
 // UI
 // ---------------------------------------------------------------------------
+const BANNER = String.raw`
+ __  __ _   _ ____ ___ ____   _     ___ _   _ _  __
+|  \/  | | | / ___|_ _/ ___| | |   |_ _| \ | | |/ /
+| |\/| | | | \___ \| | |     | |    | ||  \| | ' /
+| |  | | |_| |___) | | |___  | |___ | || |\  | . \
+|_|  |_|\___/|____/___\____| |_____|___|_| \_|_|\_\
+`;
+
 const styles = `
-  :root { color-scheme: dark; }
+  :root {
+    color-scheme: dark;
+    --bg: #0a0e0a;
+    --fg: #33ff66;
+    --dim: #1c7a3a;
+    --accent: #ffcc33;
+    --err: #ff5f56;
+  }
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #0e0e12; color: #e8e8ea;
+    font-family: "SFMono-Regular", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    background: var(--bg); color: var(--fg);
+    font-size: 14px; line-height: 1.5;
     display: flex; flex-direction: column; align-items: center;
-    padding: 48px 20px;
+    padding: 40px 16px;
+    text-shadow: 0 0 4px rgba(51,255,102,0.35);
   }
-  .wrap { width: 100%; max-width: 560px; }
-  h1 { font-size: 24px; margin: 0 0 4px; }
-  p.sub { margin: 0 0 28px; color: #9a9aa5; font-size: 14px; }
-  form { display: flex; gap: 8px; margin-bottom: 24px; }
+  /* faint CRT scanlines */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 99;
+    background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,0.18) 2px 4px);
+  }
+  .wrap { width: 100%; max-width: 620px; }
+  pre.banner {
+    color: var(--fg); margin: 0 0 6px; font-size: 11px; line-height: 1.1;
+    overflow-x: auto; white-space: pre;
+  }
+  p.sub { margin: 0 0 24px; color: var(--dim); }
+  p.sub .blink { animation: blink 1s steps(2, start) infinite; }
+  @keyframes blink { to { visibility: hidden; } }
+
+  form { display: flex; gap: 0; margin-bottom: 28px; align-items: stretch;
+    border: 1px solid var(--dim); }
+  .prompt { padding: 12px 8px 12px 12px; color: var(--accent); background: #0f150f; user-select: none; }
   input[type=text] {
-    flex: 1; padding: 12px 14px; border-radius: 10px;
-    border: 1px solid #2a2a33; background: #17171d; color: #e8e8ea; font-size: 15px;
+    flex: 1; padding: 12px 8px; border: none; background: #0f150f;
+    color: var(--fg); font: inherit; text-shadow: inherit;
   }
-  input[type=text]:focus { outline: none; border-color: #1db954; }
+  input[type=text]::placeholder { color: var(--dim); }
+  input[type=text]:focus { outline: none; }
   button {
-    padding: 12px 18px; border-radius: 10px; border: none; cursor: pointer;
-    background: #1db954; color: #06120a; font-weight: 600; font-size: 15px;
+    padding: 12px 18px; border: none; border-left: 1px solid var(--dim); cursor: pointer;
+    background: var(--fg); color: var(--bg); font: inherit; font-weight: 700; text-shadow: none;
   }
-  button:hover { filter: brightness(1.08); }
-  .card {
-    background: #17171d; border: 1px solid #2a2a33; border-radius: 14px;
-    padding: 20px; display: flex; gap: 16px; align-items: center; margin-bottom: 18px;
+  button:hover { background: var(--accent); }
+
+  /* ASCII-framed panels: label notched into the top border */
+  .box { border: 1px solid var(--fg); padding: 18px 16px 16px; margin-bottom: 16px; position: relative; }
+  .box > .box-label {
+    position: absolute; top: -0.7em; left: 12px; background: var(--bg);
+    padding: 0 8px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; font-size: 12px;
   }
-  .card img { width: 88px; height: 88px; border-radius: 10px; object-fit: cover; background: #222; }
+  .card { display: flex; gap: 16px; align-items: center; }
+  .card img { width: 84px; height: 84px; object-fit: cover; border: 1px solid var(--dim); filter: saturate(0.85); }
   .card .meta { min-width: 0; }
-  .card .title { font-size: 17px; font-weight: 600; margin: 0 0 2px; }
-  .card .artist { color: #9a9aa5; font-size: 14px; margin: 0; }
-  .links { display: flex; flex-direction: column; gap: 10px; }
-  .link-row {
-    display: flex; align-items: center; gap: 10px;
-    background: #17171d; border: 1px solid #2a2a33; border-radius: 10px; padding: 12px 14px;
-  }
-  .link-row .svc { font-weight: 600; width: 96px; flex-shrink: 0; }
-  .link-row a { color: #7db3ff; text-decoration: none; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .card .title { font-size: 15px; font-weight: 700; margin: 0 0 4px; }
+  .card .artist { color: var(--dim); margin: 0; }
+
+  .link-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+  .link-row + .link-row { border-top: 1px dashed var(--dim); }
+  .link-row .svc { color: var(--accent); width: 130px; flex-shrink: 0; }
+  .link-row a { color: var(--fg); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .link-row a:hover { text-decoration: underline; }
   .link-row .copy {
-    background: #2a2a33; color: #e8e8ea; padding: 6px 10px; font-size: 12px; font-weight: 500;
-    border-radius: 7px; flex-shrink: 0;
+    background: transparent; color: var(--fg); border: 1px solid var(--dim); border-left: 1px solid var(--dim);
+    padding: 4px 10px; font-size: 12px; flex-shrink: 0; text-shadow: none;
   }
-  .error { background: #2a1416; border: 1px solid #5c2126; color: #ffb3ba; padding: 14px 16px; border-radius: 10px; font-size: 14px; }
-  .foot { margin-top: 32px; color: #55555f; font-size: 12px; }
+  .link-row .copy:hover { background: var(--fg); color: var(--bg); }
+
+  .error { border: 1px solid var(--err); color: var(--err); padding: 12px 14px; margin-bottom: 16px; text-shadow: none; }
+  .error b { color: var(--err); }
+  .foot { margin-top: 28px; color: var(--dim); font-size: 12px; }
 `;
 
 function LinkRow({ svc, url }: { svc: string; url: string }) {
   const btnId = `c_${svc.replace(/\s/g, "")}`;
   return (
     <div className="link-row">
-      <span className="svc">{svc}</span>
+      <span className="svc">[{svc}]</span>
       <a href={url} target="_blank" rel="noreferrer">{url}</a>
       <button
         type="button"
         className="copy"
         id={btnId}
-        onClick={`navigator.clipboard.writeText('${url.replace(/'/g, "\\'")}');this.textContent='Copied';setTimeout(()=>this.textContent='Copy',1200)`}
+        onClick={`navigator.clipboard.writeText('${url.replace(/'/g, "\\'")}');this.textContent='[ok]';setTimeout(()=>this.textContent='copy',1200)`}
       >
-        Copy
+        copy
       </button>
     </div>
   );
@@ -329,38 +366,43 @@ function Page({ url, result, error }: { url: string; result: Result | null; erro
       </head>
       <body>
         <div className="wrap">
-          <h1>Music Link Converter</h1>
-          <p className="sub">Paste a Spotify track or Apple Music song link. Get the other one.</p>
+          <pre className="banner">{BANNER}</pre>
+          <p className="sub">// spotify &lt;-&gt; apple music &nbsp;·&nbsp; paste a track link<span className="blink">_</span></p>
           <form method="GET">
+            <span className="prompt">&gt;</span>
             <input
               type="text"
               name="url"
               defaultValue={url}
-              placeholder="https://open.spotify.com/track/…"
+              placeholder="https://open.spotify.com/track/..."
               autoComplete="off"
             />
-            <button type="submit">Convert</button>
+            <button type="submit">RUN</button>
           </form>
 
-          {error ? <div className="error">{error}</div> : null}
+          {error ? <div className="error"><b>[ERR]</b> {error}</div> : null}
 
           {result ? (
             <>
-              <div className="card">
-                {result.artwork ? <img src={result.artwork} alt="" /> : null}
-                <div className="meta">
-                  <p className="title">{result.matchedTitle}</p>
-                  <p className="artist">{result.matchedArtist}</p>
+              <div className="box">
+                <span className="box-label">match found</span>
+                <div className="card">
+                  {result.artwork ? <img src={result.artwork} alt="" /> : null}
+                  <div className="meta">
+                    <p className="title">{result.matchedTitle}</p>
+                    <p className="artist">{result.matchedArtist}</p>
+                  </div>
                 </div>
               </div>
-              <div className="links">
-                <LinkRow svc="Spotify" url={result.spotifyUrl} />
-                <LinkRow svc="Apple Music" url={result.appleUrl} />
+              <div className="box">
+                <span className="box-label">links</span>
+                <LinkRow svc="spotify" url={result.spotifyUrl} />
+                <LinkRow svc="apple music" url={result.appleUrl} />
               </div>
             </>
           ) : null}
 
-          <div className="foot">iTunes Search API · GB storefront · songs only</div>
+          <div className="foot">[ itunes search api :: GB storefront :: songs only ]</div>
         </div>
       </body>
     </html>
