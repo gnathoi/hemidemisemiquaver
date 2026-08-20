@@ -253,13 +253,7 @@ async function resolve(url: string): Promise<Result> {
 // ---------------------------------------------------------------------------
 // UI
 // ---------------------------------------------------------------------------
-const BANNER = String.raw`
- __  __ _   _ ____ ___ ____   _     ___ _   _ _  __
-|  \/  | | | / ___|_ _/ ___| | |   |_ _| \ | | |/ /
-| |\/| | | | \___ \| | |     | |    | ||  \| | ' /
-| |  | | |_| |___) | | |___  | |___ | || |\  | . \
-|_|  |_|\___/|____/___\____| |_____|___|_| \_|_|\_\
-`;
+const BANNER = atob("CiBfICBfICAgICAgICAgICBfICAgIF8gICAgICAgICAgIF8gICAgICAgICAgICAgICBfCnwgfHwgfF9fXyBfIF9fIChfKV9ffCB8X19fIF8gX18gKF8pX19fIF9fXyBfIF9fIChfKV9fIF8gXyAgXyBfXyBfX18gX19fX18gXyBfCnwgX18gLyAtXykgJyAgXHwgLyBfYCAvIC1fKSAnICBcfCAoXy08LyAtXykgJyAgXHwgLyBfYCB8IHx8IC8gX2AgXCBWIC8gLV8pICdffAp8X3x8X1xfX198X3xffF98X1xfXyxfXF9fX3xffF98X3xfL19fL1xfX198X3xffF98X1xfXywgfFxfLF9cX18sX3xcXy9cX19ffF98CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfF98Cg==");
 
 const styles = `
   :root {
@@ -361,7 +355,7 @@ function Page({ url, result, error }: { url: string; result: Result | null; erro
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Music Link Converter</title>
+        <title>Hemidemisemiquaver</title>
         <style dangerouslySetInnerHTML={{ __html: styles }} />
       </head>
       <body>
