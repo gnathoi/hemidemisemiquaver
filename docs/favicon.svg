@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- A hemidemisemiquaver is a 64th note: one note head, four flags. -->
+  <rect width="32" height="32" rx="7" fill="#0a0e0a"/>
+  <g fill="#33ff66">
+    <ellipse cx="12.4" cy="24.4" rx="5.4" ry="3.9" transform="rotate(-21 12.4 24.4)"/>
+    <rect x="16.4" y="4.6" width="2.2" height="19.9"/>
+  </g>
+  <g fill="none" stroke="#33ff66" stroke-width="1.9" stroke-linecap="round">
+    <path d="M18.6 5.3c3.3.7 4.6 2.5 3.6 4.4"/>
+    <path d="M18.6 8.7c3.3.7 4.6 2.5 3.6 4.4"/>
+    <path d="M18.6 12.1c3.3.7 4.6 2.5 3.6 4.4"/>
+    <path d="M18.6 15.5c3.3.7 4.6 2.5 3.6 4.4"/>
+  </g>
+</svg>
